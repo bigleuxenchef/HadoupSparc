@@ -1,31 +1,58 @@
- # Imports
-# Take care about unused imports (and also unused variables),
-# please comment them all, otherwise you will get any errors at the execution.
-# Note that neither the directives "@PydevCodeAnalysisIgnore" nor "@UnusedImport"
-# will be able to solve that issue.
-#from pyspark.mllib.clustering import KMeans
+
 from pyspark import SparkConf, SparkContext
+
+
 import os
 from StdSuites.Text_Suite import word
 from __builtin__ import sum
 
+
+
+
 # Configure the Spark environment
-sparkConf = SparkConf().setAppName("WordCounts")
+sparkConf = SparkConf().setAppName("WordCounts").set("spark.executor.memory", '8g')\
+        .set('spark.executor.cores', '8')\
+        .set('spark.driver.cores', '1')\
+        .set('spark.num.executors', '1')\
+        .set('spark.total.executor.cores', '8')\
+        .set('spark.cores.max', '8')\
+        .set("spark.driver.memory",'12g')
 #.setMaster("local")
+
+
+
+
 sc = SparkContext(conf = sparkConf)
 
+
+
+filelist = {"test.md","hdfs://MBP15.local:9000/tmp/test.md",os.environ["SPARK_HOME"] + "/../README.md"}
 # The WordCounts Spark program
-textFile = sc.textFile(os.environ["SPARK_HOME"] + "/../README.md")
+#textFile=sc.textFile("hdfs://MBP15.local:9000/tmp/application_1492290106735_0014_1",8) # 4 meqns the number of partitions
 
-wordCounts = textFile.flatMap(lambda line: line.split()).map(lambda word: (word, 1)).reduceByKey(lambda a, b: a+b)
 
-for wc in wordCounts.collect(): print wc
 
-list=wordCounts.mapValues((lambda a,b: a + b))
+for f in filelist:
+    
+    print "****** FILE : {} ******".format(f)
+    textFile = sc.textFile(f)
+    wordCounts = textFile.flatMap(lambda line: line.split()).map(lambda word: (word, 1)).reduceByKey(lambda a, b: a+b)
+    wordCounts.cache()
 
-#print reduce((lambda a,b: b), wordCounts.collect())
+    #print the first 10 tuple of the unsorted collection
+    for wc in wordCounts.collect()[1:10]: print wc
 
-#print reduce((lambda a,b : a+b), 
+    list=wordCounts.mapValues((lambda a,b: a + b))
 
-print list
+    print "total words :", wordCounts.map(lambda a: a[1]).reduce(lambda a, b: a + b)
+    print "Concat words and show firt 50 char : ",wordCounts.map(lambda a: a[0]).reduce(lambda a, b: a + '*' +  b)[0:50]
+    print "top 5 most frequent word :", wordCounts.sortBy(lambda x: x[1],ascending=False).take(5)
+    print "****** *     * *****         "
+    print "*      **    * *     * "
+    print "*      * *   * *      *"
+    print "****   *  *  * *      *"
+    print "*      *   * * *      *"
+    print "*      *    ** *     * "
+    print "****** *     * *****"
+
 
