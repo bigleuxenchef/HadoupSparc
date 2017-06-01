@@ -10,13 +10,15 @@ from __builtin__ import sum
 
 
 # Configure the Spark environment
-sparkConf = SparkConf().setAppName("WordCounts").set("spark.executor.memory", '8g')\
+sparkConf = SparkConf()\
+        .setAppName("WordCountSamples")\
+        .set("spark.executor.memory", '1g')\
         .set('spark.executor.cores', '8')\
         .set('spark.driver.cores', '1')\
         .set('spark.num.executors', '1')\
         .set('spark.total.executor.cores', '8')\
         .set('spark.cores.max', '8')\
-        .set("spark.driver.memory",'12g')
+        .set("spark.driver.memory",'1g')
 #.setMaster("local")
 
 
